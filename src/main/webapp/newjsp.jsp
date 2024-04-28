@@ -1,4 +1,4 @@
-<%@ page import="java.sql.*" %>
+<%@ page import="java.sql.*" import="oracle.jdbc.OracleTypes" import="java.math.BigDecimal" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.*" %>
 <!DOCTYPE html>
@@ -106,7 +106,9 @@
         <button type="button" onclick="toggleInsertForm()">Insert Patient</button>
         <button type="button" onclick="toggleUpdatePatientForm()">Assign Patient</button>
         <button type="submit" name="getPatientInfoView" value="true">Patients Doctor View</button>
-        <button type="button" onclick="toggleDischargeForm()">Discharge Patient</button>
+        <button type="button" onclick="showDischargeForm()">Discharge Patient</button>
+        <button type="button" onclick="showBillForm()">Bills</button>
+        
         <br>
         <label Id="label" for="getEmployeeInfo">Employee Module:</label>
         <button type="submit" name="getEmployeeInfo" value="true">Employee Info</button>
@@ -123,8 +125,8 @@
         <button type="submit" name="getNursePatientView" value="true">Nurse Patient View</button>
         <br>
         <label Id="label" for="getNurses">Other:</label>
-        <button type="submit" name="getBillInfo" value="true">Bills</button>
         <button type="submit" name="getRoomInfo" value="true">Room</button> 
+        <button type="submit" name="getEmergencyContacts" value="true">Emergency Contacts</button>
         <button type="button" onclick="window.location.href='index.html'">Logout</button>
     </form>
                     
@@ -150,6 +152,8 @@
             <button type="submit" name="insertPatient" value="true">Insert Patient</button>
         </form>
     </div>
+    
+
     <div id="insertEmployeeForm" style="display: none;">
         <h3>Insert Employee:</h3>
         <form action="newjsp.jsp" method="POST">
@@ -189,17 +193,6 @@
             <button type="submit" name="insertNurse" value="true">Insert Nurse</button>
         </form>
     </div>
-    
-    <div id="dischargePatientForm" style="display: none;">
-                <h3>Discharge Patient:</h3>
-                <form action="newjsp.jsp" method="POST">
-                    <label for="patientID">Patient ID:</label>
-                    <input type="text" id="patientID" name="patientID" required><br><br>
-                    <label for="roomNumber">Room Number:</label>
-                    <input type="text" id="roomNumber" name="roomNumber" required><br><br>
-                    <button type="submit" name="dischargePatient" value="true">Discharge Patient</button>
-                </form>
-            </div>
     
     
     <div id="updatePatientForm" style="display: none;">
@@ -342,12 +335,79 @@
             e.printStackTrace();
         }
         
+        try {
+                // JDBC URL, username, and password for Oracle database
+                String url = "jdbc:oracle:thin:@csdb.csc.villanova.edu:1521:orcl";
+                String user = "dbteam3";
+                String password = "F23dbteam3H";
+
+                // Load the Oracle JDBC driver
+                Class.forName("oracle.jdbc.driver.OracleDriver");
+
+                // Establish a database connection
+                Connection conn = DriverManager.getConnection(url, user, password);
+
+                // SQL query to retrieve all patients
+                String sql = "SELECT * FROM Patient";
+
+                // Create a statement and execute the query
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery(sql);
+                 
+                out.println();
+                out.println();
+                // Display all patients in a table
+                out.println("<h3>All Patients</h3>");
+                out.println("<table border='1'>");
+                out.println("<tr><th>Patient ID</th><th>Name</th><th>Doctor ID</th><th>Nurse ID</th><th>Room Number</th><th>Description</th></tr>");
+                while (rs.next()) {
+                    out.println("<tr>");
+                    out.println("<td>" + rs.getInt("Patient_ID") + "</td>");
+                    out.println("<td>" + rs.getString("Name") + "</td>");
+                    out.println("<td>" + rs.getInt("Doctor_ID") + "</td>");
+                    out.println("<td>" + rs.getInt("Nurse_ID") + "</td>");
+                    out.println("<td>" + rs.getInt("Room_Number") + "</td>");
+                    out.println("<td>" + rs.getString("Description") + "</td>");
+                    out.println("</tr>");
+                }
+                out.println("</table>");
+                // Close the result set, statement, and connection
+                rs.close();
+                stmt.close();
+                conn.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+       
         
      %>
-    
-    
+       
     
 </div>
+     
+     <div>
+     <form id="getBillForm" action="" method="post" style="display: none;">
+        <label for="patientId">Patient ID:</label>
+        <input type="text" id="patientId" name="patientId">
+        <br>
+        <br>
+        <button type="submit" name="getBill" value="true">Get Bills</button>
+    </form>
+     </div>
+     
+     <div>
+         <form id="dischargeForm" action="" method="post" style="display: none;">
+        <label for="patientID">Patient ID:</label>
+        <input type="text" id="patientID" name="patientID">
+        <br>
+        <br>
+        <label for="roomNumber">Room Number:</label>
+        <input type="text" id="roomNumber" name="roomNumber">
+        <br>
+        <br>
+        <button type="submit" name="dischargePatient" value="true">Discharge</button>
+    </form>
+     </div>
               
 
     <script>
@@ -404,6 +464,14 @@
                         form.style.display = "none";
                     }
                 }
+                
+       function showBillForm() {
+            document.getElementById("getBillForm").style.display = "block";
+        }
+        
+         function showDischargeForm() {
+            document.getElementById("dischargeForm").style.display = "block";
+        }
 
         
     </script>
@@ -581,7 +649,15 @@
             updatePatientStmt.close();
 
             // Display success message for patient update
-            out.println("<p>Updated " + rowsAffectedPatient + " patient(s) successfully!</p>");
+            out.println("<p>Updated " + rowsAffectedPatient + " patient successfully!</p>");
+            // Update the room occupancy to 'Occupied' if a room number is provided
+        if (roomNumber != 0) {
+            String updateRoomSql = "UPDATE Room SET Occupancy = 'Occupied' WHERE Room_Number = ?";
+            PreparedStatement updateRoomStmt = conn.prepareStatement(updateRoomSql);
+            updateRoomStmt.setInt(1, roomNumber);
+            updateRoomStmt.executeUpdate();
+            updateRoomStmt.close();
+        }
         } catch (Exception e) {
             e.printStackTrace();
             // Display error message
@@ -591,6 +667,58 @@
     }
     
     if ("true".equals(request.getParameter("dischargePatient"))) {
+        int patientID = Integer.parseInt(request.getParameter("patientID"));
+        int roomNumber = Integer.parseInt(request.getParameter("roomNumber"));
+
+        try {
+            // JDBC URL, username, and password for Oracle database
+            String url = "jdbc:oracle:thin:@csdb.csc.villanova.edu:1521:orcl";
+            String user = "dbteam3";
+            String password = "F23dbteam3H";
+
+            // Load the Oracle JDBC driver
+            Class.forName("oracle.jdbc.driver.OracleDriver");
+
+            // Establish a database connection
+            Connection conn = DriverManager.getConnection(url, user, password);
+
+            // Prepare the call to the stored procedure
+            CallableStatement cstmt = conn.prepareCall("{CALL DischargePatient(?, ?, ?, ?)}");
+
+            // Set the input parameters for patient ID and room number
+            cstmt.setInt(1, patientID);
+            cstmt.setInt(2, roomNumber);
+
+            // Register OUT parameters for success message and error message
+            cstmt.registerOutParameter(3, Types.VARCHAR);
+            cstmt.registerOutParameter(4, Types.VARCHAR);
+
+            // Execute the stored procedure
+            cstmt.execute();
+
+            // Get the success and error messages
+            String successMessage = cstmt.getString(3);
+            String errorMessage = cstmt.getString(4);
+
+            // Close the statement and connection
+            cstmt.close();
+            conn.close();
+
+            // Display success or error message
+            if (successMessage != null) {
+                out.println("<p>" + successMessage + "</p>");
+            } else if (errorMessage != null) {
+                out.println("<p>" + errorMessage + "</p>");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Display error message
+            out.println("<p>Error discharging patient!</p>");
+            out.println(e);
+        }
+    }
+    
+    /*if ("true".equals(request.getParameter("dischargePatient"))) {
     int patientID = Integer.parseInt(request.getParameter("patientID"));
     int roomNumber = Integer.parseInt(request.getParameter("roomNumber"));
 
@@ -631,7 +759,7 @@
         out.println("<p>Error discharging patient!</p>");
         out.println(e);
     }
-}
+} */
 
         
         //DOCTOR
@@ -1024,59 +1152,122 @@
             e.printStackTrace();
         }
     }
-        
-        
+    
+   
+    //Emergency contacts
+    if ("true".equals(request.getParameter("getEmergencyContacts"))) {
+    try {
+        // JDBC URL, username, and password for Oracle database
+        String url = "jdbc:oracle:thin:@csdb.csc.villanova.edu:1521:orcl";
+        String user = "dbteam3";
+        String password = "F23dbteam3H";
+
+        // Load the Oracle JDBC driver
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+
+        // Establish a database connection
+        Connection conn = DriverManager.getConnection(url, user, password);
+
+        // Prepare the call to the stored procedure
+        CallableStatement cstmt = conn.prepareCall("{CALL GetAllEmergencyContacts(?)}");
+
+        // Register the OUT parameter for the cursor
+        cstmt.registerOutParameter(1, OracleTypes.CURSOR);
+
+        // Execute the stored procedure
+        cstmt.execute();
+
+        // Get the cursor result
+        ResultSet rs = (ResultSet) cstmt.getObject(1);
+
+        // Display emergency contacts
+        out.println("<h3>Emergency Contacts</h3>");
+        out.println("<table border='1'>");
+        out.println("<tr><th>Name</th><th>Patient ID</th><th>Address</th><th>Phone Number</th><th>Relationship</th></tr>");
+        while (rs.next()) {
+            out.println("<tr>");
+            out.println("<td>" + rs.getString("Name") + "</td>");
+            out.println("<td>" + rs.getInt("Patient_ID") + "</td>");
+            out.println("<td>" + rs.getString("Address") + "</td>");
+            out.println("<td>" + rs.getString("Phone_Number") + "</td>");
+            out.println("<td>" + rs.getString("Relationship") + "</td>");
+            out.println("</tr>");
+        }
+        out.println("</table>");
+
+        // Close the result set, statement, and connection
+        rs.close();
+        cstmt.close();
+        conn.close();
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+
+
+
+          
         //BILL
         
-        if ("true".equals(request.getParameter("getBillInfo"))) {
-            try {
-                // JDBC URL, username, and password for Oracle database
-                String url = "jdbc:oracle:thin:@csdb.csc.villanova.edu:1521:orcl";
-                String user = "dbteam3";
-                String password = "F23dbteam3H";
+     if ("true".equals(request.getParameter("getBill"))) {
+        try {
+            int patientId = Integer.parseInt(request.getParameter("patientId"));
 
-                // Load the Oracle JDBC driver
-                Class.forName("oracle.jdbc.driver.OracleDriver");
+            // JDBC URL, username, and password for Oracle database
+            String url = "jdbc:oracle:thin:@csdb.csc.villanova.edu:1521:orcl";
+            String user = "dbteam3";
+            String password = "F23dbteam3H";
 
-                // Establish a database connection
-                Connection conn = DriverManager.getConnection(url, user, password);
+            // Load the Oracle JDBC driver
+            Class.forName("oracle.jdbc.driver.OracleDriver");
 
-                // SQL query to retrieve bill information along with patient names
-                String sql = "SELECT " +
-                                "b.Bill_No, " +
-                                "b.Cost, " +
-                                "p.Name AS Patient_Name " +
-                             "FROM " +
-                                "Bill b " +
-                             "JOIN " +
-                                "Patient p ON b.Patient_ID = p.Patient_ID";
+            // Establish a database connection
+            Connection conn = DriverManager.getConnection(url, user, password);
 
-                // Create a statement and execute the query
-                Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery(sql);
-                 
-                out.println();
-                out.println();
-                // Display bill information in a table
-                out.println("<h3>Bill Information</h3>");
-                out.println("<table border='1'>");
-                out.println("<tr><th>Bill No</th><th>Cost</th><th>Patient Name</th></tr>");
-                while (rs.next()) {
-                    out.println("<tr>");
-                    out.println("<td>" + rs.getInt("Bill_No") + "</td>");
-                    out.println("<td>" + rs.getDouble("Cost") + "</td>");
-                    out.println("<td>" + rs.getString("Patient_Name") + "</td>");
-                    out.println("</tr>");
-                }
-                out.println("</table>");
-                // Close the result set, statement, and connection
-                rs.close();
-                stmt.close();
-                conn.close();
-            } catch (Exception e) {
-                e.printStackTrace();
+            // Prepare the call to the stored procedure
+            CallableStatement cstmt = conn.prepareCall("{CALL GetBillForPatient(?, ?, ?)}");
+
+            // Set the input parameter for the patient ID
+            cstmt.setInt(1, patientId);
+
+            // Register OUT parameters for total bill amount and bill information
+            cstmt.registerOutParameter(2, Types.DECIMAL); // total bill amount
+            cstmt.registerOutParameter(3, OracleTypes.CURSOR); // bill information
+
+            // Execute the stored procedure
+            cstmt.execute();
+
+            // Get the total bill amount and bill information
+            BigDecimal totalBillAmount = cstmt.getBigDecimal(2);
+            ResultSet rs = (ResultSet) cstmt.getObject(3);
+
+            // Display total bill amount
+            out.println("<h3>Total Bill Amount</h3>");
+            out.println("<p>Total: $" + totalBillAmount + "</p>");
+
+            // Display bill information
+            out.println("<h3>Bills</h3>");
+            out.println("<table border='1'>");
+            out.println("<tr><th>Bill No</th><th>Cost</th><th>Patient ID</th></tr>");
+            while (rs.next()) {
+                out.println("<tr>");
+                out.println("<td>" + rs.getInt("Bill_No") + "</td>");
+                out.println("<td>" + rs.getBigDecimal("Cost") + "</td>");
+                out.println("<td>" + rs.getInt("Patient_ID") + "</td>");
+                out.println("</tr>");
             }
+            out.println("</table>");
+
+            // Close the result set, statement, and connection
+            rs.close();
+            cstmt.close();
+            conn.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+    }
+        
+        
               
     %>
     <br>
