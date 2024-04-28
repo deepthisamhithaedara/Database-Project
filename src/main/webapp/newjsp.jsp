@@ -113,16 +113,20 @@
         <label Id="label" for="getEmployeeInfo">Employee Module:</label>
         <button type="submit" name="getEmployeeInfo" value="true">Employee Info</button>
         <button type="button" onclick="toggleInsertEmployeeForm()">Insert Employee</button>
+        <button type="button" onclick="toggleDeleteEmployeeForm()">Delete Employee</button>
         <br>
         <label Id="label" for="getAllDoctors">Doctor Module:</label>
         <button type="submit" name="getAllDoctors" value="true">Doctors</button>
         <button type="button" onclick="toggleInsertDoctorForm()">Insert Doctor</button>
         <button type="submit" name="getDoctorPatientView" value="true">Doctor Patient View</button>
+        <button type="button" onclick="toggleDeleteDoctorForm()">Delete Doctor</button>
+        
         <br>
         <label Id="label" for="getNurses">Nurse Module:</label>
         <button type="submit" name="getNurses" value="true">Nurses</button>
         <button type="button" onclick="toggleInsertNurseForm()">Insert Nurse</button>
         <button type="submit" name="getNursePatientView" value="true">Nurse Patient View</button>
+        <button type="button" onclick="toggleDeleteNurseForm()">Delete Nurse</button>
         <br>
         <label Id="label" for="getNurses">Other:</label>
         <button type="submit" name="getRoomInfo" value="true">Room</button> 
@@ -170,6 +174,15 @@
         <p> Note: Doctor Degree: MD, Nurse Degree: RN </p>
     </div>
     
+    <div id="deleteEmployeeForm" style="display: none;">
+    <h3>Delete Employee:</h3>
+    <form action="newjsp.jsp" method="POST">
+        <label for="employeeId">Employee ID:</label>
+        <input type="text" id="employeeId" name="employeeId" required><br><br>
+        <button type="submit" name="deleteEmployee" value="true">Delete Employee</button>
+    </form>
+</div>
+    
     <div id="insertDoctorForm" style="display: none;">
         <h3>Insert Doctor:</h3>
         <h4> Note: First fill "Employee" as its superclass covering common information  </h4>
@@ -182,6 +195,16 @@
         </form>
     </div>
     
+    <div id="deleteDoctorForm" style="display: none;">
+    <h3>Delete Doctor:</h3>
+    <form action="newjsp.jsp" method="POST">
+        <label for="doctorId">Doctor ID:</label>
+        <input type="text" id="doctorId" name="doctorId" required><br><br>
+        <button type="submit" name="deleteDoctor" value="true">Delete Doctor</button>
+    </form>
+   </div>
+
+    
     <div id="insertNurseForm" style="display: none;">
         <h3>Insert Nurse:</h3>
         <h4> Note: First fill "Employee" as its superclass covering common information  </h4>
@@ -193,6 +216,15 @@
             <button type="submit" name="insertNurse" value="true">Insert Nurse</button>
         </form>
     </div>
+    
+    <div id="deleteNurseForm" style="display: none;">
+    <h3>Delete Nurse:</h3>
+    <form action="newjsp.jsp" method="POST">
+        <label for="nurseId">Nurse ID:</label>
+        <input type="text" id="nurseId" name="nurseId" required><br><br>
+        <button type="submit" name="deleteNurse" value="true">Delete Nurse</button>
+    </form>
+</div>
     
     
     <div id="updatePatientForm" style="display: none;">
@@ -472,6 +504,34 @@
          function showDischargeForm() {
             document.getElementById("dischargeForm").style.display = "block";
         }
+        
+        function toggleDeleteDoctorForm() {
+        var form = document.getElementById("deleteDoctorForm");
+        if (form.style.display === "none") {
+            form.style.display = "block";
+        } else {
+            form.style.display = "none";
+        }
+    }
+    
+    function toggleDeleteNurseForm() {
+        var form = document.getElementById("deleteNurseForm");
+        if (form.style.display === "none") {
+            form.style.display = "block";
+        } else {
+            form.style.display = "none";
+        }
+    }
+    
+    function toggleDeleteEmployeeForm() {
+        var form = document.getElementById("deleteEmployeeForm");
+        if (form.style.display === "none") {
+            form.style.display = "block";
+        } else {
+            form.style.display = "none";
+        }
+    }
+
 
         
     </script>
@@ -717,49 +777,6 @@
             out.println(e);
         }
     }
-    
-    /*if ("true".equals(request.getParameter("dischargePatient"))) {
-    int patientID = Integer.parseInt(request.getParameter("patientID"));
-    int roomNumber = Integer.parseInt(request.getParameter("roomNumber"));
-
-    try {
-        // JDBC URL, username, and password for Oracle database
-        String url = "jdbc:oracle:thin:@csdb.csc.villanova.edu:1521:orcl";
-        String user = "dbteam3";
-        String password = "F23dbteam3H";
-
-        // Load the Oracle JDBC driver
-        Class.forName("oracle.jdbc.driver.OracleDriver");
-
-        // Establish a database connection
-        Connection conn = DriverManager.getConnection(url, user, password);
-
-        // Delete the patient from the Patients table
-        String deletePatientSql = "DELETE FROM Patient WHERE Patient_ID = ?";
-        PreparedStatement deletePatientStmt = conn.prepareStatement(deletePatientSql);
-        deletePatientStmt.setInt(1, patientID);
-        deletePatientStmt.executeUpdate();
-        deletePatientStmt.close();
-
-        // Update the room occupancy to vacant
-        String updateRoomSql = "UPDATE Room SET Occupancy = 'Vacant' WHERE Room_Number = ?";
-        PreparedStatement updateRoomStmt = conn.prepareStatement(updateRoomSql);
-        updateRoomStmt.setInt(1, roomNumber);
-        updateRoomStmt.executeUpdate();
-        updateRoomStmt.close();
-
-        // Close the connection
-        conn.close();
-
-        // Display success message
-        out.println("<p>Patient discharged successfully!</p>");
-    } catch (Exception e) {
-        e.printStackTrace();
-        // Display error message
-        out.println("<p>Error discharging patient!</p>");
-        out.println(e);
-    }
-} */
 
         
         //DOCTOR
@@ -888,6 +905,47 @@
                 out.println(e);
             }
         }
+        
+       if ("true".equals(request.getParameter("deleteDoctor"))) { // Check if Delete Doctor button is clicked
+        try {
+        // JDBC URL, username, and password for Oracle database
+        String url = "jdbc:oracle:thin:@csdb.csc.villanova.edu:1521:orcl";
+        String user = "dbteam3";
+        String password = "F23dbteam3H";
+
+        // Load the Oracle JDBC driver
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+
+        // Establish a database connection
+        Connection conn = DriverManager.getConnection(url, user, password);
+
+        // Prepare SQL statement for deleting a doctor
+        String sql = "DELETE FROM Doctor WHERE Employee_ID = ?";
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+
+        // Set parameter for the prepared statement
+        pstmt.setString(1, request.getParameter("doctorId"));
+
+        // Execute the delete statement
+        int rowsAffected = pstmt.executeUpdate();
+
+        // Close the prepared statement and connection
+        pstmt.close();
+        conn.close();
+
+        if (rowsAffected > 0) {
+            // Display success message
+            out.println("<p>Doctor deleted successfully!</p>");
+        } else {
+            // Display message if no rows were affected (doctor not found)
+            out.println("<p>No doctor found with the specified ID!</p>");
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        out.println("<p>Error deleting doctor!</p>");
+        out.println(e);
+    }
+}
         
         //NURSE
         
@@ -1019,6 +1077,48 @@
             }
         }
         
+        if ("true".equals(request.getParameter("deleteNurse"))) { // Check if Delete Nurse button is clicked
+    try {
+        // JDBC URL, username, and password for Oracle database
+        String url = "jdbc:oracle:thin:@csdb.csc.villanova.edu:1521:orcl";
+        String user = "dbteam3";
+        String password = "F23dbteam3H";
+
+        // Load the Oracle JDBC driver
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+
+        // Establish a database connection
+        Connection conn = DriverManager.getConnection(url, user, password);
+
+        // Prepare SQL statement for deleting a nurse
+        String sql = "DELETE FROM Nurse WHERE Employee_ID = ?";
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+
+        // Set parameter for the prepared statement
+        pstmt.setString(1, request.getParameter("nurseId"));
+
+        // Execute the delete statement
+        int rowsAffected = pstmt.executeUpdate();
+
+        // Close the prepared statement and connection
+        pstmt.close();
+        conn.close();
+
+        if (rowsAffected > 0) {
+            // Display success message
+            out.println("<p>Nurse deleted successfully!</p>");
+        } else {
+            // Display message if no rows were affected (nurse not found)
+            out.println("<p>No nurse found with the specified ID!</p>");
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        out.println("<p>Error deleting nurse!</p>");
+        out.println(e);
+    }
+}
+
+        
       
         
         //EMPLOYEE
@@ -1105,6 +1205,47 @@
                 out.println(e);
             }
         }
+        
+      if ("true".equals(request.getParameter("deleteEmployee"))) { // Check if Delete Doctor button is clicked
+        try {
+        // JDBC URL, username, and password for Oracle database
+        String url = "jdbc:oracle:thin:@csdb.csc.villanova.edu:1521:orcl";
+        String user = "dbteam3";
+        String password = "F23dbteam3H";
+
+        // Load the Oracle JDBC driver
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+
+        // Establish a database connection
+        Connection conn = DriverManager.getConnection(url, user, password);
+
+        // Prepare SQL statement for deleting a doctor
+        String sql = "DELETE FROM Employee WHERE Employee_ID = ?";
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+
+        // Set parameter for the prepared statement
+        pstmt.setString(1, request.getParameter("employeeId"));
+
+        // Execute the delete statement
+        int rowsAffected = pstmt.executeUpdate();
+
+        // Close the prepared statement and connection
+        pstmt.close();
+        conn.close();
+
+        if (rowsAffected > 0) {
+            // Display success message
+            out.println("<p>Employee deleted successfully!</p>");
+        } else {
+            // Display message if no rows were affected (doctor not found)
+            out.println("<p>No Employee found with the specified ID!</p>");
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        out.println("<p>Error deleting employee!</p>");
+        out.println(e);
+    }
+}
         
         //ROOM
         
