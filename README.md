@@ -17,5 +17,6 @@ Screenshots:
 
 ![image](https://github.com/deepthisamhithaedara/Database-Project/assets/157078637/717c9cef-7880-46d1-a9db-b340bafced57)
 
-![image](https://github.com/deepthisamhithaedara/Database-Project/assets/157078637/7dd3ef9e-c71a-462b-b7dc-d4e9b0964285)
+<img width="1067" alt="image" src="https://github.com/deepthisamhithaedara/Database-Project/assets/157078637/955e6b1a-8c69-4db0-b9d7-f3bce4895e08">
+
 
