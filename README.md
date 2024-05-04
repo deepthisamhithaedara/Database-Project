@@ -13,6 +13,8 @@ Instructions:
 
 Technologies used: HTML,CSS,Java, JavaScript, JSP.
 
+SQL CODE: its in project.sql file uploaded in git
+
 Screenshots:
 
 ![image](https://github.com/deepthisamhithaedara/Database-Project/assets/157078637/717c9cef-7880-46d1-a9db-b340bafced57)
